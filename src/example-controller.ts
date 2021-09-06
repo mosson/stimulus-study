@@ -1,15 +1,13 @@
 import { Controller } from "./like-stimulus";
 
-export class ExampleController implements Controller {
+export class ExampleController extends Controller {
   static targets = ["display"];
 
-  public node: HTMLElement;
   private count: number;
-
   public displayTarget: HTMLElement | undefined;
 
   constructor(node: HTMLElement) {
-    this.node = node;
+    super(node);
     this.count = 0;
   }
 

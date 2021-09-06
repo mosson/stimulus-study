@@ -1,28 +1,43 @@
 export interface ControllerCtor {
-  new (rootNode: HTMLElement): Controller;
+  new (rootNode: HTMLElement): IController;
   targets: string[];
 }
 
-export interface Controller {
+export interface IController {
   node: HTMLElement;
   connect(): void;
   disconnect(): void;
+}
+
+export class Controller implements IController {
+  public node: HTMLElement;
+  constructor(node: HTMLElement) {
+    this.node = node;
+  }
+
+  connect() {
+    /* will be overwritten */
+  }
+
+  disconnect() {
+    /* will be overwritten */
+  }
 }
 
 // ユーザーコードではControllerをextendsした何かが定義されるため
 // イベントを処理するメソッドは不明。インデックスシグネチャでのアクセス
 // が弾かれるためやむなくこういう回避方法にした。
 function isControllerProperty(
-  instance: Controller,
+  instance: IController,
   keyName: string
-): keyName is keyof Controller {
+): keyName is keyof IController {
   if (!instance) return false;
   return keyName in instance;
 }
 
 export class LikeStimulus {
   private ctors: { [className: string]: ControllerCtor };
-  private instances: { [className: string]: Controller[] };
+  private instances: { [className: string]: IController[] };
   private observer: MutationObserver;
 
   constructor(root: HTMLElement) {
@@ -48,13 +63,13 @@ export class LikeStimulus {
   private find(
     className: string,
     rootNode: HTMLElement
-  ): Controller | undefined {
+  ): IController | undefined {
     return this.instancesOf(className).find(
       (instance) => instance.node === rootNode
     );
   }
 
-  private instancesOf(className: string): Controller[] {
+  private instancesOf(className: string): IController[] {
     if (!this.instances[className]) this.instances[className] = [];
     return this.instances[className];
   }
@@ -74,7 +89,7 @@ export class LikeStimulus {
 
       if (this.find(className, targetNode)) continue;
 
-      const instance: Controller = new controllerCtor(targetNode);
+      const instance: IController = new controllerCtor(targetNode);
       this.instancesOf(className).push(instance);
       this.hydrate(className, targetNode);
       instance.connect();
@@ -152,7 +167,7 @@ export class LikeStimulus {
   }
 
   private dehydrate(className: string, node: HTMLElement) {
-    const instance: Controller | undefined = this.find(className, node);
+    const instance: IController | undefined = this.find(className, node);
     if (!instance) return;
 
     // unsubscribe actions for memory leaking
