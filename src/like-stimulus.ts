@@ -76,32 +76,35 @@ export class LikeStimulus {
 
   private addHandle(node: Node, key: number, parent: NodeList) {
     if (!(node instanceof HTMLElement)) return;
-    const nodes: NodeListOf<HTMLElement> =
-      node.querySelectorAll<HTMLElement>("[data-controller]");
-    for (let i = 0; i < nodes.length; i++) {
-      const targetNode = nodes[i];
-      if (!targetNode) continue;
+
+    const handle = (targetNode: HTMLElement) => {
+      if (!targetNode) return;
       const className: string | undefined = targetNode.dataset?.controller;
       if (!className) return;
 
       const controllerCtor: ControllerCtor = this.ctors[className];
       if (!controllerCtor) return;
 
-      if (this.find(className, targetNode)) continue;
+      if (this.find(className, targetNode)) return;
 
       const instance: IController = new controllerCtor(targetNode);
       this.instancesOf(className).push(instance);
       this.hydrate(className, targetNode);
       instance.connect();
+    };
+
+    handle(node);
+    const nodes: NodeListOf<HTMLElement> =
+      node.querySelectorAll<HTMLElement>("[data-controller]");
+    for (let i = 0; i < nodes.length; i++) {
+      handle(nodes[i]);
     }
   }
 
   removeHandle(node: Node, key: number, parent: NodeList) {
     if (!(node instanceof HTMLElement)) return;
-    const nodes: NodeListOf<HTMLElement> =
-      node.querySelectorAll<HTMLElement>("[data-controller]");
-    for (let i = 0; i < nodes.length; i++) {
-      const targetNode = nodes[i];
+
+    const handle = (targetNode: HTMLElement) => {
       const className = targetNode.dataset?.controller;
       if (!className) return;
 
@@ -118,6 +121,13 @@ export class LikeStimulus {
           ...this.instances[className].slice(index + 1),
         ];
       }
+    };
+
+    handle(node);
+    const nodes: NodeListOf<HTMLElement> =
+      node.querySelectorAll<HTMLElement>("[data-controller]");
+    for (let i = 0; i < nodes.length; i++) {
+      handle(nodes[i]);
     }
   }
 
