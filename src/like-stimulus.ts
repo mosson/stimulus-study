@@ -60,6 +60,8 @@ export class LikeStimulus {
     this.ctors[className] = ctor;
   }
 
+  // arrayではなくobjectで保持した方が高速
+  // HTMLElement#uniqueIDのpolyfillで実現可能だが...
   private find(
     className: string,
     rootNode: HTMLElement
